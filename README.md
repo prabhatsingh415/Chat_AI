@@ -1,56 +1,195 @@
-# Welcome to your Expo app 👋
+# Chat AI — Voice-to-Chat AI Mobile Application
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A voice-first conversational AI mobile application built with **Expo SDK 55**, **React Native 0.83**, **Hermes V1**, and **React Compiler**. 
 
-## Get started
+The application captures user speech via the microphone, converts it into text for review, sends contextual prompts to Google's **Gemini REST API**, and renders the response in a modern **NativeWind** chat interface with automatic **Text-to-Speech (TTS)** playback.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## 📥 Download Release APK (Live Preview)
 
-2. Start the app
+- **Download APK (Google Drive):** [Click Here to Download Release APK](https://drive.google.com/file/d/1a_JPkVZcjHM5eoyUs8cxw9JfJzZu7KWD/view?usp=sharing)
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+> **Assessment Submission:** Developed for **Kriscent Techno Hub Pvt Ltd**.  
+> **Recommended Evaluation:** For the best and fastest live preview of the application, **installing the provided Standalone Release APK is strongly recommended**. Because `hermesV1Enabled=true` compiles React Native and the Hermes V1 C++ engine from source, fresh native builds are highly resource-intensive and sensitive to local machine configurations.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Key Features
 
-## Get a fresh project
+- **Voice-to-Text (`expo-speech-recognition`):** Non-continuous speech capture with runtime permission handling, a live duration timer, and an automatic **60-second recording cap**.
+- **Transcript Review Flow:** Users can inspect, cancel, or confirm recognized speech before sending it to the AI, preventing accidental or incomplete prompts.
+- **Contextual Gemini AI Chat:** Uses HTTPS REST calls with conversation history managed via **Zustand**, complete with HTTP `429` (Rate Limit) and `503` multi-model fallback handling.
+- **Text-to-Speech Playback (`expo-speech`):** Automatically speaks incoming AI responses (`en-IN` voice profile) with per-message speaker controls to toggle or stop playback.
+- **Offline & Permission Resilience (`NetInfo`):** Actively monitors connectivity, stops active recordings if connection drops, and displays custom popups for offline states or denied microphone permissions.
+- **Strict TypeScript (Zero `any`):** Complete end-to-end type safety across API payloads, Zustand stores, custom hooks, and component props.
 
-When you're ready, run:
+---
 
-```bash
-npm run reset-project
+## Tech Stack
+
+| Category | Technology |
+| :--- | :--- |
+| **Framework** | Expo SDK 55, React Native 0.83, React 19, Expo Router |
+| **JS Engine & Optimization** | **Hermes V1** (`useHermesV1: true`), **React Compiler** (`reactCompiler: true`) |
+| **Language** | TypeScript (Strict Mode, zero `any`) |
+| **Styling & UI** | NativeWind (Tailwind CSS), Lottie Animations, Lucide Icons |
+| **State Management** | Zustand |
+| **Voice & AI** | Google Gemini REST API, `expo-speech-recognition`, `expo-speech` |
+| **Network Monitoring** | `@react-native-community/netinfo` |
+
+---
+
+## Architecture & Data Flow
+
+```text
+                 ┌─────────────────┐
+                 │      User       │
+                 └────────┬────────┘
+                          │
+                          ▼
+                 ┌─────────────────┐
+                 │   Microphone    │  (Max 60s Timer + Permission Check)
+                 └────────┬────────┘
+                          │
+                          ▼
+                 ┌─────────────────┐
+                 │ Speech-to-Text  │  (expo-speech-recognition)
+                 └────────┬────────┘
+                          │
+                          ▼
+                 ┌─────────────────┐
+                 │   Transcript    │  (Review / Cancel / Send)
+                 └────────┬────────┘
+                          │
+                          ▼
+                 ┌─────────────────┐
+                 │   Gemini API    │  (HTTPS REST + Fallback Models)
+                 └────────┬────────┘
+                          │
+                          ▼
+                 ┌─────────────────┐
+                 │  Zustand Store  │  (Typed Conversation History)
+                 └───────┬─┬───────┘
+                         │ │
+                ┌────────┘ └────────┐
+                ▼                   ▼
+        ┌──────────────┐    ┌──────────────┐
+        │   Chat UI    │    │ Text-to-Speech│
+        └──────────────┘    └──────────────┘
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+> **Why REST instead of WebSockets?**  
+> Because the interaction follows a discrete *Record → Review Transcript → Send Prompt → Receive Response* lifecycle, HTTPS REST is cleaner, more predictable, and avoids unnecessary persistent socket overhead on mobile networks.
 
-### Other setup steps
+---
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Project Structure
 
-## Learn more
+```text
+AI-App/
+├── assets/                  # Fonts, icons, and Lottie animations
+├── components/              # Reusable UI components
+│   ├── AppText.tsx
+│   ├── ChatScreen.tsx
+│   ├── Input.tsx
+│   ├── MessageBubble.tsx
+│   ├── OfflinePopup.tsx
+│   ├── RequestPopUp.tsx
+│   └── StartConvoScreen.tsx
+├── hook/                    # Custom business-logic hooks
+│   ├── useAudio.ts
+│   ├── useGeminiChat.ts
+│   ├── useNetworkStatus.ts
+│   ├── useTimer.ts
+│   └── useTTS.ts
+├── store/
+│   └── messagesStore.ts     # Zustand state store for chat history
+├── src/
+│   └── app/                 # Expo Router screens (_layout.tsx, index.tsx)
+├── app.json                 # Expo & React Compiler configuration
+├── tailwind.config.ts       # NativeWind configuration
+├── tsconfig.json            # Strict TypeScript configuration
+└── package.json
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+---
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Getting Started (Local Development)
 
-## Join the community
+### 1. Prerequisites
+- **Node.js** (LTS) & **npm**
+- **Android Studio / Android SDK** (with an Android Emulator or physical device connected via USB debugging)
 
-Join our community of developers creating universal apps.
+### 2. Installation
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+git clone [https://github.com/prabhatsingh415/Chat_AI.git](https://github.com/prabhatsingh415/Chat_AI.git)
+cd Chat_AI
+npm install
+```
+
+### 3. Environment Variables
+Create a `.env` file in the root directory:
+
+```env
+EXPO_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+> **Security Note:** `.env` is excluded via `.gitignore`. The `EXPO_PUBLIC_` prefix embeds the key at build time for assessment testing; in a commercial production environment, requests should be proxied through a backend service.
+
+### 4. Running the Application
+
+```bash
+# Run native Android Debug build (Recommended for local code testing)
+npx expo run:android
+
+# Start Metro bundler with clean cache
+npx expo start --clear
+```
+
+---
+
+## Compiler & Engine Configuration
+
+### Hermes V1 & Build Recommendation
+This project is configured with **Hermes V1** (`useHermesV1: true` / `hermesV1Enabled=true`) and `buildReactNativeFromSource: true`. 
+
+- **Note on Local Native Builds:** Compiling React Native and the Hermes V1 C++ engine from source is computationally heavy and can vary across different machines depending on local JDK, NDK, CMake, and JVM memory configurations.
+- **Recommended Live Preview:** The production **Release APK** has already been carefully compiled, verified, and tested with Hermes V1 and React Compiler enabled. We strongly recommend using the provided Release APK for an immediate and hassle-free live evaluation of the app.
+
+### React Compiler & Code Quality Checks
+
+```bash
+# Verify React Compiler compatibility
+npx react-compiler-healthcheck@latest
+
+# Run ESLint check
+npx expo lint
+```
+
+---
+
+## Assessment Requirements Checklist
+
+| Requirement | Status | Implementation Details |
+| :--- | :---: | :--- |
+| **Expo SDK 55 & React Native** | ✅ | Expo `55.x` with React Native `0.83` (New Architecture) |
+| **Hermes V1 Enabled** | ✅ | `hermesV1Enabled=true` compiled from source |
+| **React Compiler Enabled** | ✅ | `experiments.reactCompiler: true` in `app.json` |
+| **Strict TypeScript (Zero `any`)** | ✅ | Typed interfaces for Gemini payloads, hooks, props, and state |
+| **NativeWind Styling** | ✅ | Utility-first Tailwind styling across all screens and popups |
+| **Speech-to-Text Input** | ✅ | `expo-speech-recognition` with transcript review before sending |
+| **60-Second Recording Limit** | ✅ | Custom `useTimer` hook with auto-stop at 60s |
+| **Gemini API Integration** | ✅ | Contextual REST chat with rate-limit/model fallback handling |
+| **Text-to-Speech (TTS)** | ✅ | Auto-playback via `expo-speech` + manual start/stop controls |
+| **Network & Permission Handling** | ✅ | Real-time `NetInfo` offline modal & permission recovery prompt |
+
+---
+
+## Author
+
+**Prabhat Singh**  
+GitHub: [https://github.com/prabhatsingh415/Chat_AI](https://github.com/prabhatsingh415/Chat_AI)
