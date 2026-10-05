@@ -3,18 +3,22 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
+    "start": "adb reverse tcp:8081 tcp:8081 && expo start --dev-client --android",
+    "android": "cd android && gradlew.bat app:installDebug -PreactNativeArchitectures=arm64-v8a && cd .. && npm start",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "postinstall": "node -e \"const fs = require('fs'); const p = 'node_modules/react-native/tmp'; if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });\""
   },
   "dependencies": {
+    "@react-native-community/netinfo": "11.5.2",
     "@react-navigation/bottom-tabs": "^7.15.5",
     "@react-navigation/elements": "^2.9.10",
     "@react-navigation/native": "^7.1.33",
+    "babel-preset-expo": "~55.0.8",
     "expo": "~55.0.31",
+    "expo-build-properties": "~55.0.18",
     "expo-constants": "~55.0.17",
     "expo-device": "~55.0.21",
     "expo-font": "~55.0.8",
@@ -22,23 +26,36 @@
     "expo-image": "~55.0.11",
     "expo-linking": "~55.0.17",
     "expo-router": "~55.0.18",
+    "expo-speech": "~55.0.18",
+    "expo-speech-recognition": "^3.1.3",
     "expo-splash-screen": "~55.0.25",
     "expo-status-bar": "~55.0.6",
     "expo-symbols": "~55.0.9",
     "expo-system-ui": "~55.0.22",
     "expo-web-browser": "~55.0.20",
+    "lottie-react-native": "~7.3.4",
+    "lucide-react-native": "^1.51.0",
+    "nativewind": "^4.2.6",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-native": "0.83.10",
     "react-native-gesture-handler": "~2.30.0",
-    "react-native-worklets": "0.7.4",
     "react-native-reanimated": "4.2.1",
     "react-native-safe-area-context": "~5.6.2",
     "react-native-screens": "~4.23.0",
-    "react-native-web": "~0.21.0"
+    "react-native-web": "~0.21.0",
+    "react-native-worklets": "0.7.4",
+    "zustand": "^5.0.15"
+  },
+  "overrides": {
+    "hermes-compiler": "250829098.0.4"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~55.0.1",
+    "prettier-plugin-tailwindcss": "^0.5.11",
+    "tailwindcss": "^3.4.17",
     "typescript": "~5.9.2"
   },
   "private": true
